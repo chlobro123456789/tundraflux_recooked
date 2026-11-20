@@ -13,7 +13,7 @@ editor_options:
 library("ggplot2")
 # library("plyr")  # CHANGES: plyr not available for R 4.6 - only rename() was used, now dplyr::rename()
 library("dplyr")
-library("car")
+library("car") # does not work for Bex
 library("tidyr")
 library("readxl")
 # library("reshape2")  # CHANGES: reshape2 not available for R 4.6 - no reshape2 functions are used
@@ -49,7 +49,6 @@ DS_final$Treatment<-as.factor(DS_final$Treatment)
 
 df_PLOT_LEVEL<-DS_final %>%  distinct(Distinct_Plots, .keep_all = TRUE)   
 
-
 ```
 
 
@@ -63,6 +62,8 @@ DS_final_AT<-DS_final[-which(is.na(DS_final$Air_Temp)),]
 
 dfSummary_AT<-DS_final_AT %>% group_by(Dataset_ID, Treatment) %>% summarize(MEAN=mean(Air_Temp), SDEV=sd(Air_Temp), SS=n())
 
+# Comment by Flavia: n reaches from 16 to 1507, is that an issue?
+
 dfSummary_ATCTL <- dfSummary_AT  %>% dplyr::filter(Treatment=="CTL")
 dfSummary_ATOTC <- dfSummary_AT  %>% dplyr::filter(Treatment=="OTC")
 dfSummary_AT <- full_join(dfSummary_ATCTL, dfSummary_ATOTC, by="Dataset_ID")
@@ -73,6 +74,8 @@ dfSummary_AT<-dplyr::rename(dfSummary_AT,any_of(c("SDEV_CTL"="SDEV.x")))  # CHAN
 dfSummary_AT<-dplyr::rename(dfSummary_AT,any_of(c("SDEV_OTC"="SDEV.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummary_AT<-dplyr::rename(dfSummary_AT,any_of(c("SS_CTL"="SS.x")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummary_AT<-dplyr::rename(dfSummary_AT,any_of(c("SS_OTC"="SS.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
+
+# Comment by Flavia: dfSummary_AT contains some unrealistic values for the air temperature, especially for ALA_4 (28/29 °C) but maybe also for Greenland and Sweden. How to proceed?
 
 # Calculate actual effect sizes per dataset (Raw SMD)
 SMDAT <-
@@ -114,6 +117,8 @@ dfSummary_ST<-dplyr::rename(dfSummary_ST,any_of(c("SDEV_OTC"="SDEV.y")))  # CHAN
 dfSummary_ST<-dplyr::rename(dfSummary_ST,any_of(c("SS_CTL"="SS.x")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummary_ST<-dplyr::rename(dfSummary_ST,any_of(c("SS_OTC"="SS.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 
+# Comment by Flavia: dfSummary_ST contains some pretty high values for Canada. Are those plausible?
+
 SMDST <-
   escalc("SMD", m1i = MEAN_OTC,
     n1i = SS_OTC,
@@ -152,6 +157,8 @@ dfSummary_SM<-dplyr::rename(dfSummary_SM,any_of(c("SDEV_CTL"="SDEV.x")))  # CHAN
 dfSummary_SM<-dplyr::rename(dfSummary_SM,any_of(c("SDEV_OTC"="SDEV.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummary_SM<-dplyr::rename(dfSummary_SM,any_of(c("SS_CTL"="SS.x")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummary_SM<-dplyr::rename(dfSummary_SM,any_of(c("SS_OTC"="SS.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
+
+# Comment by Flavia: dfSummary_SM has a value of -159.5 in column CTL, which is not realistic at all. Is it fair to assume that they didn’t to any quality control?
 
 SMDSM <-
   escalc("SMD", m1i = MEAN_OTC,
@@ -206,6 +213,8 @@ dfSummarySOM_Org<-dplyr::rename(dfSummarySOM_Org,any_of(c("SDEV_CTL"="SDEV.x")))
 dfSummarySOM_Org<-dplyr::rename(dfSummarySOM_Org,any_of(c("SDEV_OTC"="SDEV.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummarySOM_Org<-dplyr::rename(dfSummarySOM_Org,any_of(c("SS_CTL"="SS.x")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummarySOM_Org<-dplyr::rename(dfSummarySOM_Org,any_of(c("SS_OTC"="SS.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
+
+# Comment by Flavia: From here on onward, they sometimes use the values of one year for others years as well. More information in script df_2a.
 
 SMDSOM_Org <-
   escalc("SMD", m1i = MEAN_OTC,
@@ -435,6 +444,8 @@ dfSummarySON_Min<-dplyr::rename(dfSummarySON_Min,any_of(c("SDEV_OTC"="SDEV.y")))
 dfSummarySON_Min<-dplyr::rename(dfSummarySON_Min,any_of(c("SS_CTL"="SS.x")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummarySON_Min<-dplyr::rename(dfSummarySON_Min,any_of(c("SS_OTC"="SS.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 
+# Comment by Flavia: dfSummarySON_Min contains only two sites. Is it okay to proceed with that or is it not enough to get any valuable results in the end?
+
 SMDSON_Min <-
   escalc("SMD", m1i = MEAN_OTC,
     n1i = SS_OTC,
@@ -520,6 +531,8 @@ dfSummaryCN_Min<-dplyr::rename(dfSummaryCN_Min,any_of(c("SDEV_CTL"="SDEV.x")))  
 dfSummaryCN_Min<-dplyr::rename(dfSummaryCN_Min,any_of(c("SDEV_OTC"="SDEV.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummaryCN_Min<-dplyr::rename(dfSummaryCN_Min,any_of(c("SS_CTL"="SS.x")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 dfSummaryCN_Min<-dplyr::rename(dfSummaryCN_Min,any_of(c("SS_OTC"="SS.y")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
+
+# Comment by Flavia: dfSummaryCN_Min has very small sample sizes. Is it okay to proceed with that or is it too small to get any valuable results in the end?
 
 SMDCN_Min <-
   escalc("SMD", m1i = MEAN_OTC,
@@ -1325,7 +1338,7 @@ write.csv(SMDFB_Ratio, file.path(output_data_dir, "SMDFB_Ratio.csv"))
 
 ```
 
-
+# Comment by Flavia: Be cautious on what follows and double check if all of the above calculated values of the drivers are good to proceed with.
 
 ## overview df
 
@@ -1518,6 +1531,9 @@ drivers <- drivers[, col_order]
 
 #doublechecking values: final edits
 # remove SMD_BD_Org en Min for SVA_6_2003, 2004, 2005, 2007 (see doublechecks file) for analysis
+
+# Comment from Flavia: Where is this doublechecks file? I want to know why they removed the data.
+
 drivers$SMD_BD_Org[which(drivers$Dataset_ID =="SVA_6_ER_2003")]<-NA
 drivers$SMD_BD_Org[which(drivers$Dataset_ID =="SVA_6_ER_2004")]<-NA
 drivers$SMD_BD_Org[which(drivers$Dataset_ID =="SVA_6_ER_2005")]<-NA
@@ -1549,7 +1565,6 @@ write.csv(SMDBD_Org, file.path(output_data_dir, "SMDBD_Org.csv"))
 write.csv(drivers, file.path(output_data_dir, "drivers.csv"))
 
 ```
-
 
 #RMD (raw mean diff)
 ##climate
@@ -2526,6 +2541,7 @@ RMDMosses<-dplyr::rename(RMDMosses,any_of(c("RMDMosses"="yi")))  # CHANGES: plyr
 RMDMosses<-dplyr::rename(RMDMosses,any_of(c("RMDMosses_VARIANCE"="vi")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 
 
+### ATTENTION: Copy-Paste Bug: The NA check runs on RMDSOM_Org instead of RMDMosses. Any NA moss effect sizes stay in, and Mean_RMDMosses becomes NA
 CheckNA<-which(is.na(RMDSOM_Org$RMDSOM_Org))
 if(length(CheckNA)>0) {
 RMDSOM_Org<-RMDSOM_Org[-which(is.na(RMDSOM_Org$RMDSOM_Org)),]}

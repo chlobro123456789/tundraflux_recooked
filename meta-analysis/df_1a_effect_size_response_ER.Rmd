@@ -7,17 +7,20 @@ editor_options:
   chunk_output_type: inline
 ---
 
-#load data
+### -------------------------------------------------
+# CHANGES: Setting working directory and find data
 ```{r load data, include=FALSE}
-
 library(here)
 source(here("config.R"))
+```
+### ----------------------------------------------------
 
-
+#load data
+```{r load data, include=FALSE}
 library("ggplot2")
 # library("plyr")  # CHANGES: plyr not available for R 4.6 - only rename() was used, now dplyr::rename()
 library("dplyr")
-library("car")
+library("car") # Not working for Bex
 library("tidyr")
 library("readxl")
 # library("reshape2")  # CHANGES: reshape2 not available for R 4.6 - no reshape2 functions are used
@@ -31,7 +34,7 @@ library("effsize")
 library("metafor")
 library("corrplot")
 library("MASS")
-library("meta")
+library("meta") # Not Working for Bex
 library("metafor")
 library("installr")
 library("crayon")
@@ -43,10 +46,11 @@ DS_final<-DS_final[,-c(1)]
 head(DS_final) # CHANGES: added
 ```
 
-
 #effect sizes
 ```{r data prep, echo=FALSE}
 dfSummary<-DS_final %>% group_by(Dataset_ID, Treatment) %>% summarize(MEAN=mean(gC_CO2), SDEV=sd(gC_CO2), SS=n())
+
+# Comment by Flavia: In dfSummary, the number of observations (column SS) has big differences ranging from 9 to 1507 (with higher numbers for ALA_1 than for the other data sets. From this data, the SMD gets calculated and later on the weights for the model, where data sets with less variance (the ones with higher sample sizes) get more weight. Should we therefore pick 9 random values for each Dataset_ID and Treatment so that the data is equally represented?
 
 dfSummaryCTL <- dfSummary  %>% dplyr::filter(Treatment=="CTL")
 dfSummaryOTC <- dfSummary  %>% dplyr::filter(Treatment=="OTC")
@@ -76,6 +80,8 @@ SMD <-
 
 SMD<-dplyr::rename(SMD,any_of(c("Hedges_SMD"="yi")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
 SMD<-dplyr::rename(SMD,any_of(c("Hedges_SMD_VARIANCE"="vi")))  # CHANGES: plyr::rename -> dplyr::rename (new = old); plyr removed
+
+# Comment by Flavia: The SMD values calculated here are matching with the ones stated in supp. table 4 but not completely with Fig. 2 (there is a mismatch between supp. table 4 and Fig. 2).
 
 Mean_SMD<-mean(SMD$Hedges_SMD)
 Mean_SMD
